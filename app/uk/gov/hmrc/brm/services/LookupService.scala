@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.brm.services
 
+import com.google.inject.{AbstractModule, Inject}
+import com.google.inject.name.{Names, Named}
 import uk.gov.hmrc.brm.config.BrmConfig
 import uk.gov.hmrc.brm.connectors.{BirthConnector, GROEnglandConnector, NirsConnector, NrsConnector}
 import uk.gov.hmrc.brm.metrics._
@@ -28,10 +30,44 @@ import uk.gov.hmrc.play.http._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+
+class LookupServiceGRO @Inject()(@Named("GROConnector") connector: BirthConnector) {
+
+}
+
+class LookupServiceNRS @Inject()(@Named("NRSConnector") connector: BirthConnector) {
+
+}
+
+class LookupServiceGRONI @Inject()(@Named("GRONIConnector") connector: BirthConnector) {
+
+}
+
+
+class Module extends AbstractModule {
+  def configure() = {
+
+    bind(classOf[BirthConnector])
+      .annotatedWith(Names.named("GROConnector"))
+      .to(classOf[GROEnglandConnector])
+
+    bind(classOf[BirthConnector])
+      .annotatedWith(Names.named("NRSConnector"))
+      .to(classOf[NrsConnector])
+
+    bind(classOf[BirthConnector])
+      .annotatedWith(Names.named("GRONIConnector"))
+      .to(classOf[NirsConnector])
+
+  }
+
+}
+
+
 object LookupService extends LookupService {
-  override val groConnector = GROEnglandConnector
-  override val nirsConnector = NirsConnector
-  override val nrsConnector = NrsConnector
+  override val groConnector = new GROEnglandConnector
+  override val nirsConnector = new NirsConnector
+  override val nrsConnector = new NrsConnector
   override val matchingService = MatchingService
 }
 

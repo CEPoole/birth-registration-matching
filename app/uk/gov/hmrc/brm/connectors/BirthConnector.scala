@@ -60,14 +60,14 @@ trait BirthConnector extends ServicesConfig {
   }
 }
 
-object GROEnglandConnector extends BirthConnector {
+class GROEnglandConnector extends BirthConnector {
   override val serviceUrl = baseUrl("birth-registration-matching")
   override val httpGet : HttpGet = WSHttp
   override val baseUri = "birth-registration-matching-proxy"
   override val detailsUri = s"$serviceUrl/$baseUri/match"
 }
 
-object NirsConnector extends BirthConnector {
+class NirsConnector extends BirthConnector {
   override val serviceUrl = ""
   override val httpGet : HttpGet = WSHttp
   override val baseUri = ""
@@ -79,7 +79,7 @@ object NirsConnector extends BirthConnector {
   }
 }
 
-object NrsConnector extends BirthConnector {
+class NrsConnector extends BirthConnector {
   override val serviceUrl = ""
   override val httpGet : HttpGet = WSHttp
   override val baseUri = ""
