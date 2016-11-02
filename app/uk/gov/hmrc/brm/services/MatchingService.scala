@@ -24,7 +24,8 @@ import uk.gov.hmrc.brm.utils.BrmLogger._
 import uk.gov.hmrc.brm.utils.MatchingType
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-trait MatchingService {
+
+class MatchingService {
   val CLASS_NAME: String = this.getClass.getCanonicalName
 
   def performMatch(input: Payload, response: GroResponse, matchingType: MatchingType.Value)(implicit hc: HeaderCarrier) : ResultMatch = {
@@ -44,5 +45,3 @@ trait MatchingService {
     result
   }
 }
-
-object MatchingService extends MatchingService

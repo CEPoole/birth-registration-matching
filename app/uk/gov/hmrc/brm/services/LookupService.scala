@@ -16,13 +16,14 @@
 
 package uk.gov.hmrc.brm.services
 
-import com.google.inject.{AbstractModule, Inject}
-import com.google.inject.name.{Names, Named}
+import com.google.inject.Inject
+import com.google.inject.name.Named
 import uk.gov.hmrc.brm.config.BrmConfig
-import uk.gov.hmrc.brm.connectors.{BirthConnector, GROEnglandConnector, NirsConnector, NrsConnector}
+import uk.gov.hmrc.brm.connectors.BirthConnector
 import uk.gov.hmrc.brm.metrics._
 import uk.gov.hmrc.brm.models.brm.Payload
 import uk.gov.hmrc.brm.models.response.gro.GroResponse
+import uk.gov.hmrc.brm.modules.ModulesNames
 import uk.gov.hmrc.brm.utils.BrmLogger._
 import uk.gov.hmrc.brm.utils.{BirthRegisterCountry, BirthResponseBuilder, MatchingType}
 import uk.gov.hmrc.play.http._
@@ -30,122 +31,77 @@ import uk.gov.hmrc.play.http._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+class LookupService @Inject()(
+                               @Named(ModulesNames.GRO_CONNECTOR) gro: BirthConnector,
+                               @Named(ModulesNames.NRS_CONNECTOR) nrs: BirthConnector,
+                               @Named(ModulesNames.NI_CONNECTOR) ni: BirthConnector,
+                               matchingService : MatchingService) {
 
-class LookupServiceGRO @Inject()(@Named("GROConnector") connector: BirthConnector) {
-
-}
-
-class LookupServiceNRS @Inject()(@Named("NRSConnector") connector: BirthConnector) {
-
-}
-
-class LookupServiceGRONI @Inject()(@Named("GRONIConnector") connector: BirthConnector) {
-
-}
-
-
-class Module extends AbstractModule {
-  def configure() = {
-
-    bind(classOf[BirthConnector])
-      .annotatedWith(Names.named("GROConnector"))
-      .to(classOf[GROEnglandConnector])
-
-    bind(classOf[BirthConnector])
-      .annotatedWith(Names.named("NRSConnector"))
-      .to(classOf[NrsConnector])
-
-    bind(classOf[BirthConnector])
-      .annotatedWith(Names.named("GRONIConnector"))
-      .to(classOf[NirsConnector])
-
-  }
-
-}
-
-
-object LookupService extends LookupService {
-  override val groConnector = new GROEnglandConnector
-  override val nirsConnector = new NirsConnector
-  override val nrsConnector = new NrsConnector
-  override val matchingService = MatchingService
-}
-
-trait LookupServiceBinder {
-  self: LookupService =>
-
-  protected def getConnector()(implicit payload: Payload): BirthConnector = {
-    payload.whereBirthRegistered match {
-      case BirthRegisterCountry.ENGLAND | BirthRegisterCountry.WALES =>
-        groConnector
-      case BirthRegisterCountry.NORTHERN_IRELAND =>
-        nirsConnector
-      case BirthRegisterCountry.SCOTLAND =>
-        nrsConnector
-    }
-  }
-
-}
-
-trait LookupService extends LookupServiceBinder {
-
-  val groConnector: BirthConnector
-  val nirsConnector: BirthConnector
-  val nrsConnector: BirthConnector
-  val matchingService: MatchingService
   val CLASS_NAME: String = this.getClass.getCanonicalName
 
   /**
-    * connects to groconnector and return match if match input details.
-    *
-    * @param payload
-    * @param hc
-    * @return
-    */
+   * connects to groconnector and return match if match input details.
+   *
+   * @param payload
+   * @param hc
+   * @return
+   */
   def lookup()(implicit hc: HeaderCarrier, payload: Payload, metrics: BRMMetrics) = {
     //check if birthReferenceNumber has value
     payload.birthReferenceNumber.fold {
       info(CLASS_NAME, "lookup()", s"reference number not provided - matched: false")
       Future.successful(BirthResponseBuilder.withNoMatch())
     }(
-      reference => {
-        /**
-          * TODO: Return a generic interface BirthResponse which can use Reads/Adapter to map JsValue to case class
-          */
-        val start = metrics.startTimer()
+        reference => {
+          /**
+           * TODO: Return a generic interface BirthResponse which can use Reads/Adapter to map JsValue to case class
+           */
+          val start = metrics.startTimer()
 
-        getConnector.getReference(reference) map {
-          response =>
-            metrics.endTimer(start)
+          getConnector.getReference(reference) map {
+            response =>
+              metrics.endTimer(start)
 
-            info(CLASS_NAME, "lookup()", s"response received ${getConnector().getClass.getCanonicalName}")
-            debug(CLASS_NAME, "lookup()", s"[response] $response")
-            debug(CLASS_NAME, "lookup()", s"[payload] $payload")
+              info(CLASS_NAME, "lookup()", s"response received ${getConnector().getClass.getCanonicalName}")
+              debug(CLASS_NAME, "lookup()", s"[response] $response")
+              debug(CLASS_NAME, "lookup()", s"[payload] $payload")
 
-            response.json.validate[GroResponse].fold(
-              error => {
-                warn(CLASS_NAME, "lookup()", s"failed to validate json")
-                warn(CLASS_NAME, "lookup()", s"returned matched: false")
-                BirthResponseBuilder.withNoMatch()
-              },
-              success => {
+              response.json.validate[GroResponse].fold(
+                error => {
+                  warn(CLASS_NAME, "lookup()", s"failed to validate json")
+                  warn(CLASS_NAME, "lookup()", s"returned matched: false")
+                  BirthResponseBuilder.withNoMatch()
+                },
+                success => {
 
-                val isMatch = matchingService.performMatch(payload, success, getMatchingType).isMatch
-                info(CLASS_NAME, "lookup()", s"matched: $isMatch")
+                  val isMatch = matchingService.performMatch(payload, success, getMatchingType).isMatch
+                  info(CLASS_NAME, "lookup()", s"matched: $isMatch")
 
-                if (isMatch) MatchMetrics.matchCount() else MatchMetrics.noMatchCount()
+                  if (isMatch) MatchMetrics.matchCount() else MatchMetrics.noMatchCount()
 
-                BirthResponseBuilder.getResponse(isMatch)
-              }
-            )
+                  BirthResponseBuilder.getResponse(isMatch)
+                }
+              )
+          }
         }
-      }
-    )
+      )
   }
 
-  def getMatchingType : MatchingType.Value = {
+  protected def getMatchingType : MatchingType.Value = {
     val fullMatch = BrmConfig.matchFirstName && BrmConfig.matchLastName && BrmConfig.matchDateOfBirth
     info(CLASS_NAME, "getMatchType()", s"isFullMatching: $fullMatch configuration")
     if (fullMatch) MatchingType.FULL else MatchingType.PARTIAL
   }
+
+  protected def getConnector()(implicit payload: Payload): BirthConnector = {
+    payload.whereBirthRegistered match {
+      case BirthRegisterCountry.ENGLAND | BirthRegisterCountry.WALES =>
+        gro
+      case BirthRegisterCountry.NORTHERN_IRELAND =>
+        ni
+      case BirthRegisterCountry.SCOTLAND =>
+        nrs
+    }
+  }
+
 }
