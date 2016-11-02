@@ -85,12 +85,14 @@ class BirthEventsControllerSpec
 
   val mockConnector = mock[BirthConnector]
 
-  object MockLookupService extends LookupService {
-    override val groConnector = mockConnector
-    override val nirsConnector = NirsConnector
-    override val nrsConnector = NrsConnector
-    override val matchingService = MatchingService
-  }
+  val lookupService = app.injector.instanceOf(classOf[LookupService])
+
+  object MockLookupService extends LookupService(
+      gro = mockConnector,
+      nrs = new NrsConnector,
+      ni = new NirsConnector,
+      matchingService = new MatchingService
+  )
 
   val MockController = new BirthEventsController(MockLookupService)
 
@@ -102,7 +104,7 @@ class BirthEventsControllerSpec
     "initialising" should {
 
       "wire up dependencies correctly" in {
-        new BirthEventsController(LookupService).service shouldBe a[LookupService]
+        new BirthEventsController(lookupService).service shouldBe a[LookupService]
       }
 
     }
@@ -110,7 +112,7 @@ class BirthEventsControllerSpec
     "POST /birth-registration-matching-proxy/match" should {
 
       "return JSON response of false on unsuccessful detail match" in {
-        when(MockController.service.groConnector.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(httpResponse(groJsonResponseObject)))
+        when(MockController.service.gro.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(httpResponse(groJsonResponseObject)))
         val request = postRequest(userNoMatchIncludingReferenceNumber)
         val result = MockController.post().apply(request)
         status(result) shouldBe OK
@@ -129,7 +131,7 @@ class BirthEventsControllerSpec
       }
 
       "return JSON response of true on successful detail match" in {
-        when(MockController.service.groConnector.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(httpResponse(groJsonResponseObject)))
+        when(MockController.service.gro.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(httpResponse(groJsonResponseObject)))
         val request = postRequest(userMatchIncludingReferenceNumber)
         val result = MockController.post().apply(request)
         status(result) shouldBe OK
@@ -139,7 +141,7 @@ class BirthEventsControllerSpec
       }
 
       "return JSON response of false on unsuccessful birthReferenceNumber match" in {
-        when(MockController.service.groConnector.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(httpResponse(noJson)))
+        when(MockController.service.gro.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(httpResponse(noJson)))
         val request = postRequest(userNoMatchIncludingReferenceNumber)
         val result = MockController.post().apply(request)
         (contentAsJson(result) \ "matched").as[Boolean] shouldBe false
@@ -149,7 +151,7 @@ class BirthEventsControllerSpec
       }
 
       "return JSON response of true on successful birthReferenceNumber match" in {
-        when(MockController.service.groConnector.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(httpResponse(groJsonResponseObject)))
+        when(MockController.service.gro.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(httpResponse(groJsonResponseObject)))
         val request = postRequest(userMatchIncludingReferenceNumber)
         val result = MockController.post().apply(request)
         (contentAsJson(result) \ "matched").as[Boolean] shouldBe true
@@ -159,7 +161,7 @@ class BirthEventsControllerSpec
       }
 
       "return response code 200 if request contains missing birthReferenceNumber key" in {
-        when(MockController.service.groConnector.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(httpResponse(groJsonResponseObject)))
+        when(MockController.service.gro.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(httpResponse(groJsonResponseObject)))
         val request = postRequest(userNoMatchExcludingReferenceKey)
         val result = MockController.post().apply(request)
         status(result) shouldBe OK
@@ -169,7 +171,7 @@ class BirthEventsControllerSpec
       }
 
       "return match false when GRO returns invalid json" in {
-        when(MockController.service.groConnector.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(httpResponse(invalidResponse)))
+        when(MockController.service.gro.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(httpResponse(invalidResponse)))
         val request = postRequest(userMatchIncludingReferenceNumber)
         val result = MockController.post().apply(request)
         status(result) shouldBe OK
@@ -183,7 +185,7 @@ class BirthEventsControllerSpec
     "POST valid/invalid reference number" should {
 
       "return response code 200 if request contains birthReferenceNumber with valid characters that aren't numbers" in {
-        when(MockController.service.groConnector.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(httpResponse(groJsonResponseObject)))
+        when(MockController.service.gro.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(httpResponse(groJsonResponseObject)))
         val request = postRequest(userNoMatchIncludingReferenceCharacters)
         val result = MockController.post().apply(request)
         status(result) shouldBe OK
@@ -193,7 +195,7 @@ class BirthEventsControllerSpec
       }
 
       "return response code 400 if request contains missing birthReferenceNumber value" in {
-        when(MockController.service.groConnector.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(httpResponse(groJsonResponseObject)))
+        when(MockController.service.gro.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(httpResponse(groJsonResponseObject)))
         val request = postRequest(userMatchExcludingReferenceNumber)
         val result = MockController.post().apply(request)
         status(result) shouldBe BAD_REQUEST
@@ -202,7 +204,7 @@ class BirthEventsControllerSpec
       }
 
       "return response code 400 if request contains birthReferenceNumber with invalid characters" in {
-        when(MockController.service.groConnector.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(httpResponse(groJsonResponseObject)))
+        when(MockController.service.gro.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(httpResponse(groJsonResponseObject)))
         val request = postRequest(userNoMatchIncludingInvalidData)
         val result = MockController.post().apply(request)
         status(result) shouldBe BAD_REQUEST
@@ -292,7 +294,7 @@ class BirthEventsControllerSpec
       }
 
       "return 200 if request contains camel case where birth registered" in {
-        when(MockController.service.groConnector.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(httpResponse(groJsonResponseObject)))
+        when(MockController.service.gro.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(httpResponse(groJsonResponseObject)))
         val request = postRequest(userNoMatchIncludingReferenceNumberCamelCase)
         val result = MockController.post().apply(request)
         status(result) shouldBe OK
@@ -339,7 +341,7 @@ class BirthEventsControllerSpec
     "receiving error response from GRO" should {
 
       "return BadGateway when GRO returns upstream BAD_GATEWAY" in {
-        when(MockController.service.groConnector.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.failed(new Upstream5xxResponse("", BAD_GATEWAY, BAD_GATEWAY)))
+        when(MockController.service.gro.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.failed(new Upstream5xxResponse("", BAD_GATEWAY, BAD_GATEWAY)))
         val request = postRequest(userNoMatchIncludingReferenceNumber)
         val result = MockController.post().apply(request)
         status(result) shouldBe BAD_GATEWAY
@@ -348,7 +350,7 @@ class BirthEventsControllerSpec
       }
 
       "return BadRequest when GRO returns upstream 4xx BadRequest" in {
-        when(MockController.service.groConnector.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.failed(new Upstream4xxResponse("", BAD_REQUEST, BAD_REQUEST)))
+        when(MockController.service.gro.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.failed(new Upstream4xxResponse("", BAD_REQUEST, BAD_REQUEST)))
         val request = postRequest(userNoMatchIncludingReferenceNumber)
         val result = await(MockController.post().apply(request))
         status(result) shouldBe BAD_REQUEST
@@ -358,7 +360,7 @@ class BirthEventsControllerSpec
       }
 
       "return GatewayTimeout when GRO returns 5xx when GatewayTimeout" in {
-        when(MockController.service.groConnector.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.failed(new Upstream5xxResponse("", GATEWAY_TIMEOUT, GATEWAY_TIMEOUT)))
+        when(MockController.service.gro.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.failed(new Upstream5xxResponse("", GATEWAY_TIMEOUT, GATEWAY_TIMEOUT)))
         val request = postRequest(userNoMatchIncludingReferenceNumber)
         val result = MockController.post().apply(request)
         status(result) shouldBe GATEWAY_TIMEOUT
@@ -367,7 +369,7 @@ class BirthEventsControllerSpec
       }
 
       "return BadRequest when GRO returns BadRequestException" in {
-        when(MockController.service.groConnector.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.failed(new BadRequestException("")))
+        when(MockController.service.gro.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.failed(new BadRequestException("")))
         val request = postRequest(userNoMatchIncludingReferenceNumber)
         val result = MockController.post().apply(request)
         status(result) shouldBe BAD_REQUEST
@@ -376,7 +378,7 @@ class BirthEventsControllerSpec
       }
 
       "return InternalServerError when GRO returns upstream 5xx NOT_IMPLEMENTED" in {
-        when(MockController.service.groConnector.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.failed(new Upstream5xxResponse("", NOT_IMPLEMENTED, NOT_IMPLEMENTED)))
+        when(MockController.service.gro.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.failed(new Upstream5xxResponse("", NOT_IMPLEMENTED, NOT_IMPLEMENTED)))
         val request = postRequest(userNoMatchIncludingReferenceNumber)
         val result = MockController.post().apply(request)
         status(result) shouldBe INTERNAL_SERVER_ERROR
@@ -385,7 +387,7 @@ class BirthEventsControllerSpec
       }
 
       "return InternalServerError when GRO returns upstream InternalServerError" in {
-        when(MockController.service.groConnector.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.failed(new Upstream5xxResponse("", INTERNAL_SERVER_ERROR, INTERNAL_SERVER_ERROR)))
+        when(MockController.service.gro.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.failed(new Upstream5xxResponse("", INTERNAL_SERVER_ERROR, INTERNAL_SERVER_ERROR)))
         val request = postRequest(userNoMatchIncludingReferenceNumber)
         val result = MockController.post().apply(request)
         status(result) shouldBe INTERNAL_SERVER_ERROR
@@ -394,7 +396,7 @@ class BirthEventsControllerSpec
       }
 
       "return 200 false when GRO returns upstream NOT_FOUND" in {
-        when(MockController.service.groConnector.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.failed(new Upstream4xxResponse("", NOT_FOUND, NOT_FOUND)))
+        when(MockController.service.gro.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.failed(new Upstream4xxResponse("", NOT_FOUND, NOT_FOUND)))
         val request = postRequest(userNoMatchIncludingReferenceNumber)
         val result = MockController.post().apply(request)
         status(result) shouldBe OK
@@ -404,7 +406,7 @@ class BirthEventsControllerSpec
       }
 
       "return 200 false when GRO returns NotFoundException" in {
-        when(MockController.service.groConnector.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.failed(new NotFoundException("")))
+        when(MockController.service.gro.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.failed(new NotFoundException("")))
         val request = postRequest(userNoMatchIncludingReferenceNumber)
         val result = MockController.post().apply(request)
         status(result) shouldBe OK
@@ -414,7 +416,7 @@ class BirthEventsControllerSpec
       }
 
       "return InternalServerError when GRO throws Exception" in {
-        when(MockController.service.groConnector.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.failed(new Exception("")))
+        when(MockController.service.gro.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.failed(new Exception("")))
         val request = postRequest(userNoMatchIncludingReferenceNumber)
         val result = MockController.post().apply(request)
         status(result) shouldBe INTERNAL_SERVER_ERROR

@@ -60,26 +60,26 @@ class MatchingServiceSpec extends UnitSpec with OneAppPerSuite with MockitoSugar
 
     "return true result match" in {
       val payload = Payload(Some("123456789"), "Chris", "Jones", new LocalDate("2012-02-16"), BirthRegisterCountry.ENGLAND)
-      val resultMatch = MatchingService.performMatch(payload, validGroResponse, MatchingType.FULL)
+      val resultMatch = (new MatchingService).performMatch(payload, validGroResponse, MatchingType.FULL)
       resultMatch.isMatch shouldBe true
     }
 
     "return true when case is different for firstname, lastname" in {
       val payload = Payload(Some("123456789"), "chRis", "joNes", new LocalDate("2012-02-16"), BirthRegisterCountry.ENGLAND)
-      val resultMatch = MatchingService.performMatch(payload, validGroResponse, MatchingType.FULL)
+      val resultMatch = (new MatchingService).performMatch(payload, validGroResponse, MatchingType.FULL)
       resultMatch.isMatch shouldBe true
     }
 
 
     "return true when case is different for firstName only" in {
       val payload = Payload(Some("123456789"), "chRis", "Jones", new LocalDate("2012-02-16"), BirthRegisterCountry.ENGLAND)
-      val resultMatch = MatchingService.performMatch(payload, validGroResponse, MatchingType.FULL)
+      val resultMatch = (new MatchingService).performMatch(payload, validGroResponse, MatchingType.FULL)
       resultMatch.isMatch shouldBe true
     }
 
     "return true when case is different for lastName only" in {
       val payload = Payload(Some("123456789"), "Chris", "joNES", new LocalDate("2012-02-16"), BirthRegisterCountry.ENGLAND)
-      val resultMatch = MatchingService.performMatch(payload, validGroResponse, MatchingType.FULL)
+      val resultMatch = (new MatchingService).performMatch(payload, validGroResponse, MatchingType.FULL)
       resultMatch.isMatch shouldBe true
     }
   }
@@ -88,25 +88,25 @@ class MatchingServiceSpec extends UnitSpec with OneAppPerSuite with MockitoSugar
 
     "return false result match" in {
       val payload = Payload(Some("123456789"), "Chris", "Jones", new LocalDate("2012-02-16"), BirthRegisterCountry.ENGLAND)
-      val resultMatch = MatchingService.performMatch(payload, invalidGroResponse, MatchingType.FULL)
+      val resultMatch = (new MatchingService).performMatch(payload, invalidGroResponse, MatchingType.FULL)
       resultMatch.isMatch shouldBe false
     }
 
     "return false when firstName not match" in {
       val payload = Payload(Some("123456789"), "Chris", "Jones", new LocalDate("2012-02-16"), BirthRegisterCountry.ENGLAND)
-      val resultMatch = MatchingService.performMatch(payload, firstNameNotMatchedGroResponse, MatchingType.FULL)
+      val resultMatch = (new MatchingService).performMatch(payload, firstNameNotMatchedGroResponse, MatchingType.FULL)
       resultMatch.isMatch shouldBe false
     }
 
     "return false when lastName not match" in {
       val payload = Payload(Some("123456789"), "Chris", "Jones", new LocalDate("2012-02-16"), BirthRegisterCountry.ENGLAND)
-      val resultMatch = MatchingService.performMatch(payload, lastNameNotMatchGroResponse, MatchingType.FULL)
+      val resultMatch = (new MatchingService).performMatch(payload, lastNameNotMatchGroResponse, MatchingType.FULL)
       resultMatch.isMatch shouldBe false
     }
 
     "return false when dob not match" in {
       val payload = Payload(Some("123456789"), "Chris", "Jones", new LocalDate("2012-02-16"), BirthRegisterCountry.ENGLAND)
-      val resultMatch = MatchingService.performMatch(payload, dobNotMatchGroResponse, MatchingType.FULL)
+      val resultMatch = (new MatchingService).performMatch(payload, dobNotMatchGroResponse, MatchingType.FULL)
       resultMatch.isMatch shouldBe false
     }
   }
@@ -121,7 +121,7 @@ class MatchingServiceSpec extends UnitSpec with OneAppPerSuite with MockitoSugar
         .build()
     ) {
         val payload = Payload(Some("123456789"), "Chris", "wrongLastName", new LocalDate("2008-02-16"), BirthRegisterCountry.ENGLAND)
-        val resultMatch = MatchingService.performMatch(payload, validGroResponse, MatchingType.PARTIAL)
+        val resultMatch = (new MatchingService).performMatch(payload, validGroResponse, MatchingType.PARTIAL)
         BrmConfig.matchLastName shouldBe false
         resultMatch.isMatch shouldBe true
     }
@@ -134,7 +134,7 @@ class MatchingServiceSpec extends UnitSpec with OneAppPerSuite with MockitoSugar
         .build()
     ) {
         val payload = Payload(Some("123456789"), "wrongFirstName", "Jones", new LocalDate("2008-02-16"), BirthRegisterCountry.ENGLAND)
-        val resultMatch = MatchingService.performMatch(payload, validGroResponse, MatchingType.PARTIAL)
+        val resultMatch = (new MatchingService).performMatch(payload, validGroResponse, MatchingType.PARTIAL)
         BrmConfig.matchFirstName shouldBe false
         BrmConfig.matchDateOfBirth shouldBe false
         resultMatch.isMatch shouldBe true
@@ -148,7 +148,7 @@ class MatchingServiceSpec extends UnitSpec with OneAppPerSuite with MockitoSugar
         .build()
     ) {
         val payload = Payload(Some("123456789"), "wrongFirstName", "wrongLastName", new LocalDate("2012-02-16"), BirthRegisterCountry.ENGLAND)
-        val resultMatch = MatchingService.performMatch(payload, validGroResponse, MatchingType.PARTIAL)
+        val resultMatch = (new MatchingService).performMatch(payload, validGroResponse, MatchingType.PARTIAL)
         BrmConfig.matchFirstName shouldBe false
         resultMatch.isMatch shouldBe true
     }
@@ -161,7 +161,7 @@ class MatchingServiceSpec extends UnitSpec with OneAppPerSuite with MockitoSugar
         .build()
     ) {
         val payload = Payload(Some("123456789"), "chris", "Jones", new LocalDate("2012-02-16"), BirthRegisterCountry.ENGLAND)
-        val resultMatch = MatchingService.performMatch(payload, validGroResponse, MatchingType.PARTIAL)
+        val resultMatch = (new MatchingService).performMatch(payload, validGroResponse, MatchingType.PARTIAL)
         resultMatch.isMatch shouldBe true
     }
   }

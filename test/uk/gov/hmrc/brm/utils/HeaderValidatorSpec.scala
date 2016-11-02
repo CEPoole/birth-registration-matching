@@ -42,12 +42,12 @@ class HeaderValidatorSpec @Inject()(implicit mat : Materializer) extends UnitSpe
 
   val mockConnector = mock[BirthConnector]
 
-  object MockLookupService extends LookupService {
-    override val groConnector = mockConnector
-    override val nirsConnector = mockConnector
-    override val nrsConnector = mockConnector
-    override val matchingService = MatchingService
-  }
+  object MockLookupService extends LookupService(
+    gro = mockConnector,
+    nrs = mockConnector,
+    ni = mockConnector,
+    matchingService = new MatchingService
+  )
 
   val MockController = new BirthEventsController(MockLookupService)
 

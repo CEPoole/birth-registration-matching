@@ -20,14 +20,11 @@ import org.mockito.Matchers
 import org.mockito.Matchers.{eq => mockEq}
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfter
-import org.scalatest.events.TestFailed
 import org.scalatest.mock.MockitoSugar
 import play.api.http.Status
-import play.api.libs.json.JsValue
-import sun.reflect.generics.reflectiveObjects.NotImplementedException
 import uk.gov.hmrc.brm.utils.JsonUtils
 import uk.gov.hmrc.play.http._
-import uk.gov.hmrc.play.http.ws.{WSGet, WSHttp}
+import uk.gov.hmrc.play.http.ws.WSGet
 import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
 
 import scala.concurrent.Future
@@ -119,8 +116,9 @@ class BirthConnectorSpec extends UnitSpec with WithFakeApplication with MockitoS
   "GROEnglandConnector" should {
 
     "initialise with correct properties" in {
-      GROEnglandConnector.httpGet shouldBe a[WSGet]
-      GROEnglandConnector.detailsUri shouldBe "http://localhost:9006/birth-registration-matching-proxy/match"
+      val connector = new GROEnglandConnector
+      connector.httpGet shouldBe a[WSGet]
+      connector.detailsUri shouldBe "http://localhost:9006/birth-registration-matching-proxy/match"
     }
 
   }
@@ -128,12 +126,14 @@ class BirthConnectorSpec extends UnitSpec with WithFakeApplication with MockitoS
   "NRSConnector" should {
 
     "initialise with correct properties" in {
-      NrsConnector.httpGet shouldBe a[WSGet]
-      NrsConnector.detailsUri shouldBe "/"
+      val connector = new NrsConnector
+      connector.httpGet shouldBe a[WSGet]
+      connector.detailsUri shouldBe "/"
     }
 
     "getReference returns http NotImplementedException" in {
-      val future = NrsConnector.getReference("123333")
+      val connector = new NrsConnector
+      val future = connector.getReference("123333")
       future.onComplete {
         case Failure(e) =>
           e.getMessage shouldBe "No service available for NRS connector."
@@ -147,12 +147,14 @@ class BirthConnectorSpec extends UnitSpec with WithFakeApplication with MockitoS
   "GRONIConnector" should {
 
     "initialise with correct properties" in {
-      NirsConnector.httpGet shouldBe a[WSGet]
-      NirsConnector.detailsUri shouldBe "/"
+      val connector = new NirsConnector
+      connector.httpGet shouldBe a[WSGet]
+      connector.detailsUri shouldBe "/"
     }
 
     "getReference returns http NotImplementedException" in {
-      val future = NirsConnector.getReference("123333")
+      val connector = new NirsConnector
+      val future = connector.getReference("123333")
       future.onComplete {
         case Failure(e) =>
           e.getMessage shouldBe "No service available for GRONI connector."

@@ -20,6 +20,7 @@ import org.joda.time.LocalDate
 import org.mockito.Matchers
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
+import org.scalatestplus.play.OneAppPerSuite
 import play.api.http.Status
 import play.api.libs.json.Json
 import uk.gov.hmrc.brm.connectors.BirthConnector
@@ -28,23 +29,24 @@ import uk.gov.hmrc.brm.models.brm.Payload
 import uk.gov.hmrc.brm.models.matching.BirthMatchResponse
 import uk.gov.hmrc.brm.utils.BirthRegisterCountry
 import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
+import uk.gov.hmrc.play.test.UnitSpec
 
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 
-class LookupServiceSpec extends UnitSpec with WithFakeApplication with MockitoSugar {
+class LookupServiceSpec extends UnitSpec with OneAppPerSuite with MockitoSugar {
 
   val mockConnector = mock[BirthConnector]
-  object MockService extends LookupService {
-    override val groConnector = mockConnector
-    override val nrsConnector = mockConnector
-    override val nirsConnector = mockConnector
-    override val matchingService = MatchingService
-  }
+  object MockService extends LookupService(
+      gro = mockConnector,
+      nrs = mockConnector,
+      ni = mockConnector,
+      matchingService = new MatchingService
+  )
+
+  val lookupService = app.injector.instanceOf(classOf[LookupService])
 
   implicit val metrics = mock[BRMMetrics]
-
   implicit val hc = HeaderCarrier()
 
   "LookupService" when {
@@ -52,9 +54,9 @@ class LookupServiceSpec extends UnitSpec with WithFakeApplication with MockitoSu
     "initialising" should {
 
       "initialise with dependencies" in {
-        LookupService.groConnector shouldBe a[BirthConnector]
-        LookupService.nrsConnector shouldBe a[BirthConnector]
-        LookupService.nirsConnector shouldBe a[BirthConnector]
+        lookupService.gro shouldBe a[BirthConnector]
+        lookupService.nrs shouldBe a[BirthConnector]
+        lookupService.ni shouldBe a[BirthConnector]
       }
 
     }
@@ -102,7 +104,7 @@ class LookupServiceSpec extends UnitSpec with WithFakeApplication with MockitoSu
             |
             |  }
           """.stripMargin)
-        when(MockService.groConnector.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(HttpResponse(Status.OK, Some(groResponseInvalid))))
+        when(MockService.gro.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(HttpResponse(Status.OK, Some(groResponseInvalid))))
         val service = MockService
         implicit val payload = Payload(Some("999999920"), "Adam", "Conder", LocalDate.now, BirthRegisterCountry.ENGLAND)
         val result = await(service.lookup)(Duration.create(5, "seconds"))
@@ -149,7 +151,7 @@ class LookupServiceSpec extends UnitSpec with WithFakeApplication with MockitoSu
             |
             |  }
           """.stripMargin)
-        when(MockService.groConnector.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(HttpResponse(Status.OK, Some(groResponseValid))))
+        when(MockService.gro.getReference(Matchers.any())(Matchers.any())).thenReturn(Future.successful(HttpResponse(Status.OK, Some(groResponseValid))))
         val service = MockService
         implicit val payload = Payload(Some("123456789"), "Chris", "Jones", new LocalDate("2012-02-16"), BirthRegisterCountry.ENGLAND)
         val result = await(service.lookup)

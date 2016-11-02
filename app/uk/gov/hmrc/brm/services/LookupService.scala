@@ -32,9 +32,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class LookupService @Inject()(
-                               @Named(ModulesNames.GRO_CONNECTOR) gro: BirthConnector,
-                               @Named(ModulesNames.NRS_CONNECTOR) nrs: BirthConnector,
-                               @Named(ModulesNames.NI_CONNECTOR) ni: BirthConnector,
+                               @Named(ModulesNames.GRO_CONNECTOR) val gro: BirthConnector,
+                               @Named(ModulesNames.NRS_CONNECTOR) val nrs: BirthConnector,
+                               @Named(ModulesNames.NI_CONNECTOR) val ni: BirthConnector,
                                matchingService : MatchingService) {
 
   val CLASS_NAME: String = this.getClass.getCanonicalName
