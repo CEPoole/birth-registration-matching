@@ -44,4 +44,22 @@ object CommonConstant {
        |}
       """.stripMargin)
 
+  val GRO_DOWN = Json.parse(
+    s"""
+       |{
+       |"code": "GRO_UNAVAILABLE",
+       |"reason": "General Registry Office: England and Wales is unavailable"
+       |}
+     """.stripMargin
+  )
+
+  val NRS_DOWN = Json.parse(
+    s"""
+       |{
+       |"code": "NRS_UNAVAILABLE",
+       |"reason": "National Records Scotland: Scotland is unavailable"
+       |}
+     """.stripMargin
+  )
+
 }

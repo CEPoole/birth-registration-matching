@@ -448,7 +448,13 @@ class BirthEventsControllerSpec
           status(result) shouldBe INTERNAL_SERVER_ERROR
           contentType(result).get shouldBe "application/json"
           header(ACCEPT, result).get shouldBe "application/vnd.hmrc.1.0+json"
-          bodyOf(result) shouldBe empty
+          jsonBodyOf(result) shouldBe Json.parse(
+            s"""
+               |{
+               |  "code": "GRO_UNAVAILABLE",
+               |  "description": "General Registry Office: England and Wales is unavailable"
+               |}
+             """.stripMargin)
         }
 
         "return InternalServerError when GRO returns upstream InternalServerError" in {
@@ -460,7 +466,13 @@ class BirthEventsControllerSpec
           status(result) shouldBe INTERNAL_SERVER_ERROR
           contentType(result).get shouldBe "application/json"
           header(ACCEPT, result).get shouldBe "application/vnd.hmrc.1.0+json"
-          bodyOf(result) shouldBe empty
+          jsonBodyOf(result) shouldBe Json.parse(
+            s"""
+               |{
+               |  "code": "GRO_UNAVAILABLE",
+               |  "description": "General Registry Office: England and Wales is unavailable"
+               |}
+             """.stripMargin)
         }
 
         "return 200 false when GRO returns upstream NOT_FOUND" in {
@@ -496,7 +508,13 @@ class BirthEventsControllerSpec
           status(result) shouldBe INTERNAL_SERVER_ERROR
           contentType(result).get shouldBe "application/json"
           header(ACCEPT, result).get shouldBe "application/vnd.hmrc.1.0+json"
-          bodyOf(result) shouldBe empty
+          jsonBodyOf(result) shouldBe Json.parse(
+            s"""
+               |{
+               |  "code": "GRO_UNAVAILABLE",
+               |  "description": "General Registry Office: England and Wales is unavailable"
+               |}
+             """.stripMargin)
         }
 
       }
@@ -560,7 +578,13 @@ class BirthEventsControllerSpec
           status(result) shouldBe INTERNAL_SERVER_ERROR
           contentType(result).get shouldBe "application/json"
           header(ACCEPT, result).get shouldBe "application/vnd.hmrc.1.0+json"
-          bodyOf(result) shouldBe empty
+          jsonBodyOf(result) shouldBe Json.parse(
+            s"""
+               |{
+               |  "code": "GRO_UNAVAILABLE",
+               |  "description": "General Registry Office: England and Wales is unavailable"
+               |}
+             """.stripMargin)
         }
 
         "return InternalServerError when GRO returns upstream InternalServerError" in {
@@ -572,7 +596,13 @@ class BirthEventsControllerSpec
           status(result) shouldBe INTERNAL_SERVER_ERROR
           contentType(result).get shouldBe "application/json"
           header(ACCEPT, result).get shouldBe "application/vnd.hmrc.1.0+json"
-          bodyOf(result) shouldBe empty
+          jsonBodyOf(result) shouldBe Json.parse(
+            s"""
+               |{
+               |  "code": "GRO_UNAVAILABLE",
+               |  "description": "General Registry Office: England and Wales is unavailable"
+               |}
+             """.stripMargin)
         }
 
         "return 200 false when GRO returns upstream NOT_FOUND" in {
@@ -608,7 +638,13 @@ class BirthEventsControllerSpec
           status(result) shouldBe INTERNAL_SERVER_ERROR
           contentType(result).get shouldBe "application/json"
           header(ACCEPT, result).get shouldBe "application/vnd.hmrc.1.0+json"
-          bodyOf(result) shouldBe empty
+          jsonBodyOf(result) shouldBe Json.parse(
+            s"""
+               |{
+               |  "code": "GRO_UNAVAILABLE",
+               |  "description": "General Registry Office: England and Wales is unavailable"
+               |}
+             """.stripMargin)
         }
 
       }
@@ -879,7 +915,13 @@ class BirthEventsControllerSpec
           status(result) shouldBe INTERNAL_SERVER_ERROR
           contentType(result).get shouldBe "application/json"
           header(ACCEPT, result).get shouldBe "application/vnd.hmrc.1.0+json"
-          bodyOf(result) shouldBe empty
+          jsonBodyOf(result) shouldBe Json.parse(
+            s"""
+               |{
+               |  "code": "NRS_UNAVAILABLE",
+               |  "description": "National Records Scotland: Scotland is unavailable"
+               |}
+             """.stripMargin)
         }
 
         "return 500 InternalServerError when NRS returns 503 Service unavailable" in {
@@ -891,7 +933,13 @@ class BirthEventsControllerSpec
           status(result) shouldBe INTERNAL_SERVER_ERROR
           contentType(result).get shouldBe "application/json"
           header(ACCEPT, result).get shouldBe "application/vnd.hmrc.1.0+json"
-          bodyOf(result) shouldBe empty
+          jsonBodyOf(result) shouldBe Json.parse(
+            s"""
+               |{
+               |  "code": "NRS_UNAVAILABLE",
+               |  "description": "National Records Scotland: Scotland is unavailable"
+               |}
+             """.stripMargin)
         }
 
       }
