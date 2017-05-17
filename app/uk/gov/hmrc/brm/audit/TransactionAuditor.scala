@@ -19,11 +19,10 @@ package uk.gov.hmrc.brm.audit
 import com.google.inject.Singleton
 import uk.gov.hmrc.brm.config.{BrmConfig, MicroserviceGlobal}
 import uk.gov.hmrc.brm.models.brm.Payload
+import uk.gov.hmrc.brm.models.brm.Payload.{DetailsRequest, ReferenceRequest}
 import uk.gov.hmrc.brm.models.matching.ResultMatch
 import uk.gov.hmrc.brm.models.response.Record
 import uk.gov.hmrc.brm.services.parser.NameParser._
-import uk.gov.hmrc.brm.utils.CommonUtil.{DetailsRequest, ReferenceRequest}
-import uk.gov.hmrc.brm.utils.{CommonUtil, KeyGenerator}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -53,7 +52,7 @@ class TransactionAuditor(connector : AuditConnector = MicroserviceGlobal.auditCo
   def audit(result : Map[String, String], payload: Option[Payload])(implicit hc : HeaderCarrier) = {
     payload match {
       case Some(p) =>
-        CommonUtil.getOperationType(p) match {
+        Payload.getOperationType(p) match {
           case DetailsRequest() =>
             event(new RequestsAndResultsAuditEvent(result, "birth-registration-matching/match/details"))
           case ReferenceRequest() =>

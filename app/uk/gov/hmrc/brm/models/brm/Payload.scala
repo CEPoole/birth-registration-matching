@@ -17,7 +17,6 @@
 package uk.gov.hmrc.brm.models.brm
 
 import org.joda.time.LocalDate
-import play.api.Logger
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json.Writes._
@@ -45,7 +44,6 @@ case class Payload(
     "payload.whereBirthRegistered" -> whereBirthRegistered.toString
     )
   }
-
 }
 
 object Payload extends BRMFormat {
@@ -68,11 +66,26 @@ object Payload extends BRMFormat {
 
   implicit val requestFormat: Reads[Payload] = (
       (JsPath \ birthReferenceNumber).readNullable[String](birthReferenceNumberValidate) and
-      (JsPath \ firstName).read[String](nameValidation keepAnd minLength[String](1)  keepAnd maxLength[String](BrmConfig.nameMaxLength)) and
+      (JsPath \ firstName).read[String](nameValidation keepAnd minLength[String](1) keepAnd maxLength[String](BrmConfig.nameMaxLength)) and
       (JsPath \ additionalNames).readNullable[String](nameValidation keepAnd minLength[String](1)  keepAnd maxLength[String](BrmConfig.nameMaxLength)) and
       (JsPath \ lastName).read[String](nameValidation  keepAnd minLength[String](1) keepAnd maxLength[String](BrmConfig.nameMaxLength)) and
       (JsPath \ dateOfBirth).read[LocalDate](isAfterDate) and
       (JsPath \ whereBirthRegistered).read[BirthRegisterCountry](birthRegisterReads)
     )(Payload.apply _)
+
+  abstract class RequestType
+
+  case class ReferenceRequest() extends RequestType
+
+  case class DetailsRequest() extends RequestType
+
+  def getOperationType(p: Payload): RequestType = p match {
+    case input@Payload(None, _, _, _, _, _) => {
+      DetailsRequest()
+    }
+    case payload@Payload(Some(birthReferenceNumber), _, _, _, _, _) => {
+      ReferenceRequest()
+    }
+  }
 }
 

@@ -19,8 +19,8 @@ package uk.gov.hmrc.brm.audit
 import com.google.inject.Singleton
 import uk.gov.hmrc.brm.config.MicroserviceGlobal
 import uk.gov.hmrc.brm.models.brm.Payload
-import uk.gov.hmrc.brm.utils.{BRMLogger, CommonUtil}
-import uk.gov.hmrc.brm.utils.CommonUtil.{DetailsRequest, ReferenceRequest}
+import uk.gov.hmrc.brm.models.brm.Payload.{DetailsRequest, ReferenceRequest}
+import uk.gov.hmrc.brm.utils.BRMLogger
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -46,7 +46,7 @@ class MatchingAudit(connector : AuditConnector = MicroserviceGlobal.auditConnect
     BRMLogger.info("MatchingAudit", "audit", "auditing match event")
     payload match {
       case Some(p) =>
-        CommonUtil.getOperationType(p) match {
+        Payload.getOperationType(p) match {
           case DetailsRequest() =>
             event(new MatchingEvent(result, "birth-registration-matching/match/details"))
           case ReferenceRequest() =>
@@ -56,6 +56,8 @@ class MatchingAudit(connector : AuditConnector = MicroserviceGlobal.auditConnect
         Future.failed(new IllegalArgumentException("[MatchingAudit] payload argument not specified"))
     }
   }
+
+
 
 
 }

@@ -22,22 +22,22 @@ import uk.gov.hmrc.brm.models.brm.Payload
 
 object CommonUtil extends Controller {
 
-  abstract class RequestType
-
-  case class ReferenceRequest() extends RequestType
-
-  case class DetailsRequest() extends RequestType
-
-  def getOperationType(payload: Payload): RequestType = {
-    payload match {
-      case input@Payload(None, _, _, _, _, _) => {
-        DetailsRequest()
-      }
-      case payload@Payload(Some(birthReferenceNumber), _, _, _, _, _) => {
-        ReferenceRequest()
-      }
-    }
-  }
+//  abstract class RequestType
+//
+//  case class ReferenceRequest() extends RequestType
+//
+//  case class DetailsRequest() extends RequestType
+//
+//  def getOperationType(payload: Payload): RequestType = {
+//    payload match {
+//      case input@Payload(None, _, _, _, _, _) => {
+//        DetailsRequest()
+//      }
+//      case payload@Payload(Some(birthReferenceNumber), _, _, _, _, _) => {
+//        ReferenceRequest()
+//      }
+//    }
+//  }
 
 
   //add additional name to firstname if ignore middle name is false.
@@ -50,3 +50,5 @@ object CommonUtil extends Controller {
   }
 
 }
+
+
