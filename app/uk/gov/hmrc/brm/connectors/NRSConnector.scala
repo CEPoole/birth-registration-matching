@@ -17,28 +17,26 @@
 package uk.gov.hmrc.brm.connectors
 
 
-import com.google.inject.Singleton
+import com.google.inject.name.Named
+import com.google.inject.{Inject, Singleton}
+import org.apache.http.client.methods.HttpPost
 import play.api.libs.json.{JsValue, Json}
-import uk.gov.hmrc.brm.audit.ScotlandAudit
-import uk.gov.hmrc.brm.config.{BrmConfig, WSHttp}
+import uk.gov.hmrc.brm.audit.BRMDownstreamAPIAudit
+import uk.gov.hmrc.brm.config.BrmConfig
 import uk.gov.hmrc.brm.models.brm.Payload
 import uk.gov.hmrc.brm.utils.CommonConstant._
 import uk.gov.hmrc.brm.utils.DateUtil._
-import uk.gov.hmrc.brm.utils.{CommonConstant, CommonUtil, KeyGenerator, NameFormat}
-import uk.gov.hmrc.play.http.HttpPost
+import uk.gov.hmrc.brm.utils.{CommonUtil, KeyGenerator, NameFormat}
 
-/**
-  * Created by adamconder on 07/02/2017.
-  */
 @Singleton
-class NRSConnector(var httpPost: HttpPost = WSHttp, auditor: ScotlandAudit = new ScotlandAudit()) extends BirthConnector {
+class NRSConnector @Inject()(override val httpPost: HttpPost,
+                   @Named("nrs-auditor") auditor: BRMDownstreamAPIAudit) extends BirthConnector {
 
   override val serviceUrl = baseUrl("des")
   private val baseUri = "national-records/births"
   private val detailsUri = s"$serviceUrl/$baseUri"
   private val referenceUri = s"$serviceUrl/$baseUri"
   private val DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS"
-
 
   override def headers =
     Seq(

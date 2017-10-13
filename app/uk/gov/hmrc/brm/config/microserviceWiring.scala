@@ -16,16 +16,41 @@
 
 package uk.gov.hmrc.brm.config
 
+import javax.inject
+
+import com.google.inject.AbstractModule
+import com.google.inject.name.Names
+import uk.gov.hmrc.brm.audit.{BRMDownstreamAPIAudit, NorthernIrelandAudit, ScotlandAudit}
 import uk.gov.hmrc.play.audit.http.config.LoadAuditingConfig
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.config.{AppName, RunMode}
+import uk.gov.hmrc.play.config.{AppName, ControllerConfig, RunMode, ServicesConfig}
+import uk.gov.hmrc.play.http.HttpPost
 import uk.gov.hmrc.play.http.hooks.HttpHook
 import uk.gov.hmrc.play.http.ws._
 
-object WSHttp extends WSGet with WSPut with WSPost with WSDelete with WSPatch with AppName {
+@inject.Singleton
+class WSHttp extends WSGet with WSPut with WSPost with WSDelete with WSPatch with AppName {
   override val hooks: Seq[HttpHook] = NoneRequired
 }
 
-object MicroserviceAuditConnector extends AuditConnector with RunMode {
+@inject.Singleton
+class MicroserviceAuditConnector extends AuditConnector with RunMode {
   override lazy val auditingConfig = LoadAuditingConfig(s"auditing")
+}
+
+class GuiceModule() extends AbstractModule with ServicesConfig {
+
+  def configure() : Unit = {
+    bind(classOf[HttpPost]).to(classOf[WSHttp])
+    bind(classOf[AuditConnector]).to(classOf[MicroserviceAuditConnector])
+    bind(classOf[AuditConnector]).to(classOf[MicroserviceAuditConnector])
+    bind(classOf[ControllerConfig]).to(classOf[ControllerConfiguration])
+//    bind(classOf[ServicesConfig]).toInstance(MicroserviceGlobal)
+
+    bind(classOf[BRMDownstreamAPIAudit]).annotatedWith(Names.named("ni-auditor"))
+      .to(classOf[NorthernIrelandAudit])
+    bind(classOf[BRMDownstreamAPIAudit]).annotatedWith(Names.named("nrs-auditor"))
+      .to(classOf[ScotlandAudit])
+  }
+
 }

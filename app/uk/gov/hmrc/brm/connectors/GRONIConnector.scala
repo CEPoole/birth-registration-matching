@@ -16,30 +16,29 @@
 
 package uk.gov.hmrc.brm.connectors
 
+import javax.inject.{Inject, Named}
+
 import com.google.inject.Singleton
 import play.api.libs.json.{JsValue, Json}
-import uk.gov.hmrc.brm.audit.NorthernIrelandAudit
-import uk.gov.hmrc.brm.config.WSHttp
+import uk.gov.hmrc.brm.audit.BRMDownstreamAPIAudit
 import uk.gov.hmrc.brm.models.brm.Payload
 import uk.gov.hmrc.brm.utils.BRMLogger
-import uk.gov.hmrc.brm.utils.CommonConstant._
 import uk.gov.hmrc.play.http.{HeaderCarrier, HttpPost, NotImplementedException}
 
 import scala.concurrent.Future
 
-/**
-  * Created by adamconder on 07/02/2017.
-  */
+
 @Singleton
-class GRONIConnector(var httpPost: HttpPost = WSHttp, auditor : NorthernIrelandAudit = new NorthernIrelandAudit()) extends BirthConnector {
+class GRONIConnector @Inject()(override val httpPost: HttpPost,
+                               @Named("ni-auditor") auditor : BRMDownstreamAPIAudit) extends BirthConnector {
 
   override val serviceUrl = ""
   private val baseUri = ""
   private val detailsUri = s"$serviceUrl/$baseUri"
   private val referenceUri = s"$serviceUrl/$baseUri"
 
-
   override def headers = Seq()
+
   override val referenceBody: PartialFunction[Payload, (String, JsValue)] = {
     case Payload(Some(brn), _, _, _, _, _) =>
       (referenceUri, Json.parse(

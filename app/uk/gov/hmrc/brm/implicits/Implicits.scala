@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.brm.implicits
 
-import com.google.inject.Singleton
+import com.google.inject.{Inject, Singleton}
 import play.api.libs.json.Reads
 import uk.gov.hmrc.brm.audit._
 import uk.gov.hmrc.brm.metrics._
@@ -54,13 +54,17 @@ object Implicits {
   }
 
   @Singleton
-  class AuditFactory() {
+  class AuditFactory @Inject()(
+                                englandAndWalesAudit : EnglandAndWalesAudit,
+                                scotlandAudit: ScotlandAudit,
+                                northernIrelandAudit: NorthernIrelandAudit
+                              ) {
 
     private lazy val set: Map[BirthRegisterCountry.Value, BRMDownstreamAPIAudit] = Map(
-      BirthRegisterCountry.ENGLAND -> new EnglandAndWalesAudit(),
-      BirthRegisterCountry.WALES -> new EnglandAndWalesAudit(),
-      BirthRegisterCountry.SCOTLAND -> new ScotlandAudit(),
-      BirthRegisterCountry.NORTHERN_IRELAND -> new NorthernIrelandAudit()
+      BirthRegisterCountry.ENGLAND -> englandAndWalesAudit,
+      BirthRegisterCountry.WALES -> englandAndWalesAudit,
+      BirthRegisterCountry.SCOTLAND -> scotlandAudit,
+      BirthRegisterCountry.NORTHERN_IRELAND -> northernIrelandAudit
     )
 
     def getAuditor()(implicit payload: Payload): BRMDownstreamAPIAudit = {

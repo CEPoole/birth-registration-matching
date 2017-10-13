@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.brm.services.matching
 
+import com.google.inject.Inject
 import uk.gov.hmrc.brm.audit.MatchingAudit
 import uk.gov.hmrc.brm.config.BrmConfig
 import uk.gov.hmrc.brm.models.brm.Payload
@@ -25,16 +26,10 @@ import uk.gov.hmrc.brm.utils.BRMLogger._
 import uk.gov.hmrc.brm.utils.MatchingType
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-object MatchingService extends MatchingService {
-  override val matchOnMultiple: Boolean = BrmConfig.matchOnMultiple
-  override val auditor = new MatchingAudit()
-}
 
-trait MatchingService {
+class MatchingService @Inject()(auditor : MatchingAudit)
+                               (matchOnMultiple : Boolean = BrmConfig.matchOnMultiple) {
   val CLASS_NAME: String = this.getClass.getCanonicalName
-
-  protected val matchOnMultiple: Boolean
-  protected val auditor : MatchingAudit
 
   def performMatch(input: Payload,
                    records: List[Record],

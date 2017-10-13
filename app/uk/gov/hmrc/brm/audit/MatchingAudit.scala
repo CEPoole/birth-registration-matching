@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.brm.audit
 
-import com.google.inject.Singleton
-import uk.gov.hmrc.brm.config.MicroserviceGlobal
+
+import com.google.inject.{Inject, Singleton}
 import uk.gov.hmrc.brm.models.brm.{DetailsRequest, Payload, ReferenceRequest}
 import uk.gov.hmrc.brm.utils.BRMLogger
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -29,7 +29,8 @@ import scala.concurrent.Future
   * Created by adamconder on 08/02/2017.
   */
 @Singleton
-class MatchingAudit(connector : AuditConnector = MicroserviceGlobal.auditConnector) extends BRMAudit(connector) {
+class MatchingAudit @Inject()(connector : AuditConnector)
+  extends BRMAudit(connector) {
 
   /**
     * MatchingEvent

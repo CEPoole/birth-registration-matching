@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.brm.controllers
 
+import javax.inject.{Inject, Singleton}
+
 import org.joda.time.DateTime
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
@@ -32,27 +34,24 @@ import uk.gov.hmrc.brm.utils.BRMLogger._
 import uk.gov.hmrc.brm.utils.{BirthResponseBuilder, HeaderValidator, _}
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.brm.utils.CommonUtil._
+
 import scala.concurrent.Future
 
-object BirthEventsController extends BirthEventsController {
-  override val service = LookupService
-  override val countryAuditor = new WhereBirthRegisteredAudit()
-  override val auditFactory = new AuditFactory()
-  override val transactionAuditor = new TransactionAuditor()
-  override val matchingAuditor = new MatchingAudit()
-  override val headerValidator = HeaderValidator
-}
-
-trait BirthEventsController extends BRMBaseController {
+@Singleton
+class BirthEventsController @Inject()(
+                                     service: LookupService,
+                                     countryAuditor : WhereBirthRegisteredAudit,
+                                     auditFactory: AuditFactory,
+                                     override val transactionAuditor: TransactionAuditor,
+                                     override val matchingAuditor : MatchingAudit,
+                                     override val headerValidator: HeaderValidator
+                                     )
+  extends BRMBaseController {
 
   override val CLASS_NAME : String = this.getClass.getCanonicalName
   override val METHOD_NAME: String = "BirthEventsController::post"
 
   import scala.concurrent.ExecutionContext.Implicits.global
-
-  protected val service: LookupService
-  protected val countryAuditor : WhereBirthRegisteredAudit
-  protected val auditFactory : AuditFactory
 
   private def handleInvalidRequest(request : Request[JsValue], errors: Seq[(JsPath, Seq[ValidationError])])(implicit hc : HeaderCarrier) : Future[Result] = {
     countryAuditor.auditCountryInRequest(request.body)

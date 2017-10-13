@@ -16,9 +16,10 @@
 
 package uk.gov.hmrc.brm.audit
 
-import com.google.inject.Singleton
+import javax.inject.Singleton
+
+import com.google.inject.Inject
 import play.api.libs.json.{JsDefined, JsValue}
-import uk.gov.hmrc.brm.config.MicroserviceGlobal
 import uk.gov.hmrc.brm.models.brm.Payload
 import uk.gov.hmrc.brm.utils.BirthRegisterCountry
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
@@ -31,7 +32,7 @@ import scala.util.Try
   * Created by adamconder on 09/02/2017.
   */
 @Singleton
-class WhereBirthRegisteredAudit(connector: AuditConnector = MicroserviceGlobal.auditConnector)
+class WhereBirthRegisteredAudit @Inject()(connector: AuditConnector)
   extends BRMAudit(connector) {
 
   /**

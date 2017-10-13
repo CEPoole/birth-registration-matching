@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.brm.services
 
+import com.google.inject.Inject
+import play.api.Play
 import uk.gov.hmrc.brm.audit.{BRMDownstreamAPIAudit, TransactionAuditor}
 import uk.gov.hmrc.brm.connectors._
 import uk.gov.hmrc.brm.implicits.Implicits.ReadsFactory
@@ -31,40 +33,26 @@ import uk.gov.hmrc.play.http._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object LookupService extends LookupService {
-  override val groConnector = new GROConnector
-  override val nrsConnector = new NRSConnector
-  override val groniConnector = new GRONIConnector
-  override val matchingService = MatchingService
-  override val transactionAuditor = new TransactionAuditor()
-}
 
-trait LookupServiceBinder {
-  self: LookupService =>
+class LookupService @Inject()(groConnector: GROConnector,
+                              nrsConnector: NRSConnector,
+                              groNIConnector: GRONIConnector,
+                              matchingService: MatchingService,
+                              transactionAuditor: TransactionAuditor
+                             ) {
+
+  val CLASS_NAME: String = this.getClass.getCanonicalName
 
   protected def getConnector()(implicit payload: Payload): BirthConnector = {
     payload.whereBirthRegistered match {
       case BirthRegisterCountry.ENGLAND | BirthRegisterCountry.WALES =>
         groConnector
       case BirthRegisterCountry.NORTHERN_IRELAND =>
-        groniConnector
+        groNIConnector
       case BirthRegisterCountry.SCOTLAND =>
         nrsConnector
     }
   }
-
-}
-
-trait LookupService extends LookupServiceBinder {
-
-  protected val groConnector: BirthConnector
-  protected val nrsConnector: BirthConnector
-  protected val groniConnector: BirthConnector
-  protected val matchingService: MatchingService
-
-  protected val transactionAuditor : TransactionAuditor
-
-  val CLASS_NAME: String = this.getClass.getCanonicalName
 
   /**
     * connects to groconnector and return match if match input details.
@@ -79,6 +67,7 @@ trait LookupService extends LookupServiceBinder {
                payload: Payload,
                metrics: BRMMetrics,
                auditor: BRMDownstreamAPIAudit) = {
+
     getRecord(hc, payload, metrics).map {
       response =>
         info(CLASS_NAME, "lookup()", s"response received ${getConnector().getClass.getCanonicalName}")

@@ -16,40 +16,61 @@
 
 package uk.gov.hmrc.brm.config
 
-import com.typesafe.config.Config
+import javax.inject.Inject
+
 import net.ceedubs.ficus.Ficus._
+import com.google.inject.Singleton
+import com.typesafe.config.Config
 import play.api.mvc.EssentialFilter
-import play.api.{Application, Configuration, Play}
+import play.api.{Application, Configuration}
 import uk.gov.hmrc.play.audit.filters.AuditFilter
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.config.{AppName, ControllerConfig, RunMode}
 import uk.gov.hmrc.play.filters.MicroserviceFilterSupport
 import uk.gov.hmrc.play.filters.frontend.HeadersFilter
 import uk.gov.hmrc.play.http.logging.filters.LoggingFilter
 import uk.gov.hmrc.play.microservice.bootstrap.{DefaultMicroserviceGlobal, MicroserviceFilters}
 
-object ControllerConfiguration extends ControllerConfig {
-  lazy val controllerConfigs = Play.current.configuration.underlying.as[Config]("controllers")
+@Singleton
+class ControllerConfiguration @Inject()(configuration: Configuration) extends ControllerConfig {
+  lazy val controllerConfigs = configuration.underlying.as[Config]("controllers")
 }
 
-object MicroserviceAuditFilter extends AuditFilter with AppName with MicroserviceFilterSupport  {
-  override val auditConnector = MicroserviceAuditConnector
-  override def controllerNeedsAuditing(controllerName: String) = ControllerConfiguration.paramsForController(controllerName).needsAuditing
+@Singleton
+class MicroserviceAuditFilter @Inject()(override val auditConnector: AuditConnector,
+                                         controllerConfig: ControllerConfig
+                                       ) extends AuditFilter with AppName with MicroserviceFilterSupport  {
+  override def controllerNeedsAuditing(controllerName: String) = controllerConfig
+    .paramsForController(controllerName).needsAuditing
 }
 
-object MicroserviceLoggingFilter extends LoggingFilter with MicroserviceFilterSupport {
-  override def controllerNeedsLogging(controllerName: String) = ControllerConfiguration.paramsForController(controllerName).needsLogging
+@Singleton
+class MicroserviceLoggingFilter @Inject()(controllerConfig: ControllerConfig
+                                         ) extends LoggingFilter with MicroserviceFilterSupport {
+  override def controllerNeedsLogging(controllerName: String) = controllerConfig
+    .paramsForController(controllerName).needsLogging
 }
 
-object MicroserviceGlobal extends DefaultMicroserviceGlobal with RunMode with MicroserviceFilters {
-  override val auditConnector = MicroserviceAuditConnector
+@Singleton
+case class MicroserviceGlobal @Inject() (
+                                        auditConnector: MicroserviceAuditConnector,
+                                        loggingFilter: MicroserviceLoggingFilter,
+                                        microserviceAuditFilter: MicroserviceAuditFilter
+                                        )
+  extends DefaultMicroserviceGlobal
+    with RunMode
+    with MicroserviceFilters {
 
-  override def microserviceMetricsConfig(implicit app: Application): Option[Configuration] = app.configuration.getConfig(s"microservice.metrics")
+//  override def auditConnector = new MicroserviceAuditConnector
 
-  override val loggingFilter = MicroserviceLoggingFilter
+  override def microserviceMetricsConfig(implicit app: Application): Option[Configuration]
+  = app.configuration.getConfig(s"microservice.metrics")
 
-  override val microserviceAuditFilter = MicroserviceAuditFilter
+//  override def loggingFilter = new MicroserviceLoggingFilter
 
-  override val authFilter = None
+//  override def microserviceAuditFilter = new MicroserviceAuditFilter
+
+  override def authFilter = None
 
   override def microserviceFilters: Seq[EssentialFilter] = {
     defaultMicroserviceFilters ++ Seq(HeadersFilter)

@@ -16,8 +16,7 @@
 
 package uk.gov.hmrc.brm.audit
 
-import com.google.inject.Singleton
-import uk.gov.hmrc.brm.config.MicroserviceGlobal
+import com.google.inject.{Inject, Singleton}
 import uk.gov.hmrc.brm.models.brm.{DetailsRequest, Payload, ReferenceRequest}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -29,7 +28,7 @@ import scala.concurrent.Future
   */
 
 @Singleton
-class EnglandAndWalesAudit(connector : AuditConnector = MicroserviceGlobal.auditConnector)
+class EnglandAndWalesAudit @Inject()(connector : AuditConnector)
   extends BRMDownstreamAPIAudit(connector) {
 
   /**

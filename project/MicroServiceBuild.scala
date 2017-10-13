@@ -17,21 +17,12 @@ object MicroServiceBuild extends Build with MicroService {
 private object AppDependencies {
   import play.core.PlayVersion
 
-  private val microserviceBootstrapVersion = "5.15.0"
-  private val playHealthVersion = "2.1.0"
-  private val logbackJsonLoggerVersion = "3.1.0"
-  private val playUrlBindersVersion = "2.1.0"
-  private val playConfigVersion = "4.3.0"
-  private val hmrcTestVersion = "2.3.0"
-  private val mockito = "1.9.5"
-  private val specs2 = "2.3.13"
-
   val compile = Seq(
-    "uk.gov.hmrc" %% "microservice-bootstrap" % microserviceBootstrapVersion,
-    "uk.gov.hmrc" %% "play-health" % playHealthVersion,
-    "uk.gov.hmrc" %% "play-url-binders" % playUrlBindersVersion,
-    "uk.gov.hmrc" %% "play-config" % playConfigVersion,
-    "uk.gov.hmrc" %% "logback-json-logger" % logbackJsonLoggerVersion
+    "uk.gov.hmrc" %% "microservice-bootstrap" % "5.15.0",
+    "uk.gov.hmrc" %% "play-health" % "2.1.0",
+    "uk.gov.hmrc" %% "play-url-binders" % "2.1.0",
+    "uk.gov.hmrc" %% "play-config" % "4.3.0",
+    "uk.gov.hmrc" %% "logback-json-logger" % "3.1.0"
   )
 
   trait TestDependencies {
@@ -42,12 +33,12 @@ private object AppDependencies {
   object Test {
     def apply() = new TestDependencies {
       override lazy val test = Seq(
-        "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
+        "uk.gov.hmrc" %% "hmrctest" % "2.3.0" % scope,
         "org.scalatest" %% "scalatest" % "2.2.6" % scope,
         "org.pegdown" % "pegdown" % "1.5.0" % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
-        "org.mockito" % "mockito-all" % mockito,
-        "org.specs2" % "specs2_2.10" % specs2,
+        "org.mockito" % "mockito-all" % "1.9.5",
+        "org.specs2" % "specs2_2.10" % "2.3.13",
         "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1"
       )
     }.test
@@ -59,11 +50,11 @@ private object AppDependencies {
       override lazy val scope: String = "it"
 
       override lazy val test = Seq(
-        "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
+        "uk.gov.hmrc" %% "hmrctest" % "2.3.0" % scope,
         "org.scalatest" %% "scalatest" % "2.2.6" % scope,
         "org.pegdown" % "pegdown" % "1.5.0" % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
-        "org.mockito" % "mockito-all" % mockito,
+        "org.mockito" % "mockito-all" % "1.9.5",
         "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1"
       )
     }.test
