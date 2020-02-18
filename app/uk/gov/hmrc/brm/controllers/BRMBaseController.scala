@@ -16,13 +16,13 @@
 
 package uk.gov.hmrc.brm.controllers
 
-import play.api.mvc.Result
 import uk.gov.hmrc.brm.audit.{BRMDownstreamAPIAudit, MatchingAudit, TransactionAuditor}
 import uk.gov.hmrc.brm.models.brm.Payload
 import uk.gov.hmrc.brm.models.matching.MatchingResult
 import uk.gov.hmrc.brm.utils.CommonUtil._
 import uk.gov.hmrc.brm.utils.{BRMException, HeaderValidator}
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
+
 import uk.gov.hmrc.http.HeaderCarrier
 
 trait BRMBaseController extends BaseController with BRMException {

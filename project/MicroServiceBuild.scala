@@ -17,15 +17,12 @@ object MicroServiceBuild extends Build with MicroService {
 private object AppDependencies {
   import play.core.PlayVersion
 
-  private val microserviceBootstrapVersion = "10.6.0"
-  private val playuiVersion = "7.27.0-play-25"
   private val hmrcTestVersion = "3.3.0"
   private val mockito = "1.10.9"
   private val specs2 = "2.3.13"
 
   val compile = Seq(
-    "uk.gov.hmrc" %% "microservice-bootstrap" % microserviceBootstrapVersion,
-    "uk.gov.hmrc" %% "play-ui" % playuiVersion
+    "uk.gov.hmrc" %% "bootstrap-play-25" % "5.1.0"
   )
 
   trait TestDependencies {
